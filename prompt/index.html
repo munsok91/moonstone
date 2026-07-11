@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI로 배구게임 만드는 법 — 문석배구 제작 프롬프트</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#8fdcba;font-family:-apple-system,'Helvetica Neue','Apple SD Gothic Neo','Pretendard','Malgun Gothic',sans-serif;color:#124434;line-height:1.7}
+  .wrap{max-width:640px;margin:0 auto;padding:48px 20px 80px}
+  .logo{font-size:13px;letter-spacing:4px;font-weight:800;color:rgba(18,68,52,.55);text-align:center;margin-bottom:28px}
+  h1{font-size:clamp(26px,6vw,38px);font-weight:900;line-height:1.3;text-align:center;letter-spacing:-1px}
+  h1 .white{color:#fff}
+  .sub{text-align:center;font-size:15px;font-weight:600;color:rgba(18,68,52,.75);margin:14px 0 40px}
+  .step{background:rgba(255,255,255,.35);border-radius:20px;padding:20px 22px;margin-bottom:14px;font-size:15px;font-weight:600}
+  .step b{display:block;font-size:17px;font-weight:900;margin-bottom:4px}
+  .step .n{display:inline-block;background:#124434;color:#eafff4;width:26px;height:26px;border-radius:50%;text-align:center;line-height:26px;font-size:14px;font-weight:900;margin-right:8px}
+  .promptbox{position:relative;background:#124434;border-radius:20px;padding:24px 22px;margin:30px 0 10px}
+  .promptbox pre{white-space:pre-wrap;word-break:keep-all;color:#dcfff0;font-size:14px;line-height:1.8;font-family:inherit;font-weight:500}
+  .copybtn{position:sticky;bottom:16px;display:block;width:100%;margin:14px 0 40px;padding:16px;border:none;border-radius:999px;background:#fff;color:#124434;font-size:17px;font-weight:900;cursor:pointer;box-shadow:0 4px 0 rgba(18,68,52,.35),0 10px 24px rgba(18,68,52,.25)}
+  .copybtn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(18,68,52,.35)}
+  h2{font-size:20px;font-weight:900;margin:44px 0 14px}
+  .tip{background:rgba(255,255,255,.35);border-radius:16px;padding:14px 18px;margin-bottom:10px;font-size:14px;font-weight:600}
+  .tip code{background:rgba(18,68,52,.12);border-radius:8px;padding:2px 8px;font-family:inherit;font-weight:800}
+  .cta{display:block;text-align:center;text-decoration:none;padding:16px;border-radius:999px;font-size:16px;font-weight:900;margin-top:12px}
+  .cta.play{background:#fff;color:#124434;box-shadow:0 4px 0 rgba(18,68,52,.35)}
+  .cta.class{background:#124434;color:#eafff4;box-shadow:0 4px 0 rgba(6,30,22,.6)}
+  .foot{text-align:center;font-size:12px;font-weight:600;color:rgba(18,68,52,.5);margin-top:48px}
+  .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:#124434;color:#eafff4;padding:12px 24px;border-radius:999px;font-size:14px;font-weight:800;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">M O O N S T O N E</div>
+  <h1>코딩 한 줄 몰라도<br><span class="white">배구게임</span> 만드는 프롬프트</h1>
+  <p class="sub">문석배구를 만들 때 실제로 쓴 말들을<br>하나의 프롬프트로 정리했어요. 그대로 복사하세요.</p>
+
+  <div class="step"><b><span class="n">1</span>AI를 엽니다</b>클로드(claude.ai)나 챗GPT에 접속해요. 무료로도 됩니다.</div>
+  <div class="step"><b><span class="n">2</span>아래 프롬프트를 통째로 붙여넣어요</b>[대괄호] 부분만 원하는 테마로 바꾸면 나만의 게임이 됩니다.</div>
+  <div class="step"><b><span class="n">3</span>받은 파일을 더블클릭</b>index.html 파일 하나가 나와요. 더블클릭하면 게임 시작.</div>
+
+  <div class="promptbox"><pre id="pt">피카츄 배구의 재미요소(점프 + 타이밍 강타)를 담은 배구 게임을 HTML 파일 하나로 만들어줘.
+
+게임 규칙:
+- 15점 먼저 내면 승리, 14:14면 듀스(2점 차 승리)
+- 혼자하기(AI 상대, 쉬움/보통/어려움) + 둘이하기(키보드 나눠 쓰기)
+- 조작은 최대한 단순하게: 좌우 이동 + 버튼 하나로 땅에서는 점프, 공중에서는 스파이크
+- 공에 닿는 순간 타이밍 맞춰 누르면 강타가 나가는 손맛이 핵심이야
+
+캐릭터와 테마:
+- [여기를 바꿔봐 → 예: 카우보이 인형 vs 우주인 장난감, 배경은 별이 흐르는 우주]
+- 캐릭터는 이미지 파일 말고 코드(canvas)로 직접 그려줘. 둥글둥글 귀엽게
+
+디자인:
+- [원하는 색감 → 예: 파스텔 민트 톤, 크림색 포인트]
+- 득점이나 강타 때 파티클이 터지고 화면이 살짝 흔들리는 타격감
+
+기술 조건 (중요):
+- 외부 라이브러리, 인터넷 연결 없이 index.html 파일 딱 하나로. 더블클릭하면 바로 실행되게
+- 효과음은 음원 파일 없이 웹오디오로 직접 합성해줘
+- 폰에서도 할 수 있게 터치 버튼(◀ ▶ 이동, ▲ 점프)을 넣어줘. 가로 화면 기준
+- 키보드는 한/영 상태와 상관없이 작동하게
+
+다 만들면 네가 직접 플레이 테스트를 해보고, AI가 자책골을 넣지는 않는지, 공 속도가 적당한지 밸런스까지 확인해서 고쳐줘.</pre></div>
+
+  <button class="copybtn" id="copy">📋 프롬프트 전체 복사</button>
+
+  <h2>한 번에 안 예뻐도 괜찮아요</h2>
+  <p style="font-size:14px;font-weight:600;margin-bottom:14px">해보고 느낀 점을 그냥 말로 하면 AI가 고칩니다. 제가 실제로 했던 말들:</p>
+  <div class="tip"><code>공이 너무 빨라. 랠리가 길게 이어지게 해줘</code></div>
+  <div class="tip"><code>AI가 자책골을 넣는데? 고쳐줘</code></div>
+  <div class="tip"><code>(사진 첨부) 이 사진 색감이랑 분위기로 바꿔줘</code></div>
+  <div class="tip"><code>이기면 다음 레벨로 넘어가는 무한 레벨 만들어줘</code></div>
+  <div class="tip"><code>지면 니체 명언이 나오게 해줘</code></div>
+  <p style="font-size:14px;font-weight:700;margin-top:16px">포인트는 하나 — 기술 용어가 아니라, <b>느낀 점을 그대로</b> 말하는 것.</p>
+
+  <h2>완성본이 궁금하다면</h2>
+  <a class="cta play" href="../">🏐 문석배구 바로 해보기 (무료)</a>
+  <a class="cta class" href="https://artfinal.imweb.me/shop_view/?idx=282">🎓 이렇게 만드는 법 처음부터 배우기</a>
+
+  <p class="foot">made by @munsok · 프롬프트는 마음껏 쓰고, 나만의 게임을 만들어보세요</p>
+</div>
+<div class="toast" id="toast">복사됐어요! AI 채팅창에 붙여넣으세요</div>
+<script>
+document.getElementById('copy').addEventListener('click',async()=>{
+  const t=document.getElementById('pt').innerText;
+  try{ await navigator.clipboard.writeText(t); }
+  catch(e){
+    const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); ta.remove();
+  }
+  const el=document.getElementById('toast');
+  el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200);
+});
+</script>
+</body>
+</html>
