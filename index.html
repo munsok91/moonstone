@@ -12,7 +12,8 @@
   #cv{display:block;width:100%;height:100%;border-radius:12px}
   .mch{display:block}
   .ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;border-radius:12px}
-  #menu{background:rgba(143,220,186,.85);backdrop-filter:blur(4px)}
+  #menu{background:rgba(143,220,186,.85);backdrop-filter:blur(4px);overflow-y:auto;justify-content:flex-start}
+  #menuIn{margin:auto;display:flex;flex-direction:column;align-items:center;padding:16px 8px}
   #over{background:rgba(143,220,186,.9);display:none}
   .logo{font-size:clamp(40px,8.5vw,78px);font-weight:900;letter-spacing:-2px;line-height:.92;
     color:#fff;text-transform:uppercase;margin-bottom:10px}
@@ -46,12 +47,16 @@
     width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer}
   /* 터치 컨트롤 */
   #touch{position:absolute;inset:0;display:none;pointer-events:none;z-index:20}
-  .tbtn{position:absolute;bottom:3%;width:10.5%;aspect-ratio:1;border-radius:50%;pointer-events:auto;
-    background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.4);color:rgba(255,255,255,.75);
-    display:flex;align-items:center;justify-content:center;font-size:clamp(16px,3.4vw,24px);font-weight:900}
-  .tbtn:active{background:rgba(255,255,255,.45)}
-  #tL{left:2%}#tR{left:14.5%}
-  #tJ{right:2%;width:13%;background:rgba(18,68,52,.15)}
+  #tMove{position:absolute;left:max(2%,env(safe-area-inset-left));bottom:max(3.5%,env(safe-area-inset-bottom));
+    display:flex;gap:clamp(10px,1.6vw,18px);pointer-events:auto;touch-action:none}
+  .tbtn{width:clamp(58px,9.5vw,96px);aspect-ratio:1;border-radius:50%;
+    background:rgba(18,68,52,.22);border:2px solid rgba(255,255,255,.55);color:rgba(255,255,255,.92);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-size:clamp(20px,3.6vw,28px);font-weight:900;line-height:1;-webkit-touch-callout:none}
+  .tbtn.on,.tbtn:active{background:rgba(255,255,255,.5);color:#124434}
+  .tbtn small{font-size:clamp(8px,1.3vw,11px);font-weight:800;margin-top:3px;letter-spacing:.3px}
+  #tJ{position:absolute;right:max(2%,env(safe-area-inset-right));bottom:max(3.5%,env(safe-area-inset-bottom));
+    width:clamp(72px,12vw,112px);background:rgba(18,68,52,.22);pointer-events:auto;touch-action:none}
   #rotate{display:none;position:fixed;inset:0;background:#8fdcba;z-index:99;color:#124434;
     flex-direction:column;align-items:center;justify-content:center;font-size:18px;font-weight:800;gap:12px}
   @media (orientation:portrait) and (pointer:coarse){ #rotate{display:flex} }
@@ -66,6 +71,7 @@
   <div class="ov" id="menu">
     <canvas id="mchL" class="mch" width="220" height="290"></canvas>
     <canvas id="mchR" class="mch" width="220" height="290"></canvas>
+    <div id="menuIn">
     <div class="logo">MOON<br>STONE</div>
     <div class="yr">VOLLEYBALL GAME</div>
     <div class="diffrow">
@@ -91,6 +97,8 @@
       <b>둘이하기</b> : 왼쪽 A D + <b>F</b> / 오른쪽 ← → + <b>엔터</b> (땅에서 점프 · 공중에서 스파이크)<br>
       공에 닿는 순간 강타 버튼! 타이밍이 전부입니다 · 15점 먼저 내면 승리
     </div>
+    <button class="btn small" id="btnDL" style="display:none;margin-top:16px;background:rgba(255,255,255,.3);color:#124434">💾 게임 파일 저장 — PC·맥에서 인터넷 없이 실행</button>
+    </div>
   </div>
 
   <div class="ov" id="over">
@@ -112,9 +120,11 @@
   </div>
 
   <div id="touch">
-    <div class="tbtn" id="tL">◀</div>
-    <div class="tbtn" id="tR">▶</div>
-    <div class="tbtn" id="tJ">▲</div>
+    <div id="tMove">
+      <div class="tbtn" id="tL">◀</div>
+      <div class="tbtn" id="tR">▶</div>
+    </div>
+    <div class="tbtn" id="tJ">▲<small>점프·강타</small></div>
   </div>
 </div>
 
@@ -230,8 +240,28 @@ function bindTouch(id,down,up){
   el.addEventListener('touchcancel',off,{passive:false});
   el.addEventListener('mousedown',on); el.addEventListener('mouseup',off); el.addEventListener('mouseleave',off);
 }
-bindTouch('tL',()=>tFlags.L=true,()=>tFlags.L=false);
-bindTouch('tR',()=>tFlags.R=true,()=>tFlags.R=false);
+// 이동 존 — 손가락을 떼지 않고 ◀▶ 사이를 미끄러져도 방향이 바로 바뀜
+const tMoveEl=document.getElementById('tMove');
+const tLEl=document.getElementById('tL'), tREl=document.getElementById('tR');
+let moveTid=null;
+function setMove(x){
+  const r=tMoveEl.getBoundingClientRect();
+  const left=x<r.left+r.width/2;
+  tFlags.L=left; tFlags.R=!left;
+  tLEl.classList.toggle('on',left); tREl.classList.toggle('on',!left);
+}
+function clearMove(){ tFlags.L=false; tFlags.R=false; tLEl.classList.remove('on'); tREl.classList.remove('on'); moveTid=null; }
+tMoveEl.addEventListener('touchstart',e=>{ e.preventDefault(); initAudio();
+  if(moveTid===null){ moveTid=e.changedTouches[0].identifier; setMove(e.changedTouches[0].clientX); } },{passive:false});
+tMoveEl.addEventListener('touchmove',e=>{ e.preventDefault();
+  for(const t of e.changedTouches) if(t.identifier===moveTid) setMove(t.clientX); },{passive:false});
+const moveDone=e=>{ e.preventDefault();
+  for(const t of e.changedTouches) if(t.identifier===moveTid) clearMove(); };
+tMoveEl.addEventListener('touchend',moveDone,{passive:false});
+tMoveEl.addEventListener('touchcancel',moveDone,{passive:false});
+// 데스크톱 마우스 백업
+tLEl.addEventListener('mousedown',()=>tFlags.L=true); tLEl.addEventListener('mouseup',()=>tFlags.L=false); tLEl.addEventListener('mouseleave',()=>tFlags.L=false);
+tREl.addEventListener('mousedown',()=>tFlags.R=true); tREl.addEventListener('mouseup',()=>tFlags.R=false); tREl.addEventListener('mouseleave',()=>tFlags.R=false);
 bindTouch('tJ',()=>{tFlags.J=true; if(state==='play'&&!paused&&!localOnGround())localPower();},()=>tFlags.J=false);
 
 // ============ 메뉴 ============
@@ -255,6 +285,28 @@ function goHome(){
 }
 $('btnMenu').addEventListener('click',goHome);
 $('mute').addEventListener('click',()=>{ muted=!muted; $('mute').textContent=muted?'🔇':'🔊'; initAudio(); });
+
+// 터치 기기: 안내문을 터치 조작 기준으로 교체 + 키보드 전용 모드 숨김
+if(isTouch){
+  document.querySelector('.hint').innerHTML=
+    '<b>◀ ▶</b> 이동 · <b>▲</b> 땅에서 점프, 공중에서 강타!<br>'+
+    '공에 닿는 순간 <b>▲</b>를 누르면 강타 · 15점 먼저 내면 승리';
+  if(!matchMedia('(any-pointer:fine)').matches) $('btn2p').style.display='none';
+}
+// 웹으로 접속했을 때(PC·맥): 게임 파일 통째로 저장 버튼
+if((location.protocol==='http:'||location.protocol==='https:')&&!isTouch){
+  $('btnDL').style.display='inline-block';
+  $('btnDL').addEventListener('click',async()=>{
+    try{
+      const b=await (await fetch(location.href)).blob();
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(new Blob([b],{type:'text/html'}));
+      a.download='문석배구.html';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href),10000);
+    }catch(err){ open(location.href,'_blank'); }
+  });
+}
 
 function startGame(m,diff){
   // 버튼 포커스 해제 — 스페이스/엔터가 버튼을 재클릭해 게임이 리셋되는 것 방지
